@@ -12,6 +12,8 @@ import mapbox_vector_tile
 import pyproj
 import shapely
 
+class VtpkException(Exception):
+  pass
 
 class Qttl(Enum):
   NW = 0
@@ -64,7 +66,7 @@ class TileIndexTile:
           parent=parent, level=level, x=x, y=y, child_nw=None, child_ne=None, child_sw=None, child_se=None
         )
       else:
-        raise Exception("Unknown tilemap tile value {data}")
+        raise VtpkException("Unknown tilemap tile value {data}")
     elif type(data) == list:
       return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
 
@@ -188,22 +190,25 @@ class TileBundleFile:
 class Vtpk:
   def __init__(self, file_path):
     self.compressed = zipfile.ZipFile(file_path, "r")
-    with self.compressed.open("p12/tilemap/root.json") as tilemap_root_json:
-      self.root_tile = TileIndexRoot.from_list(json.loads(tilemap_root_json.read())["index"])
-    with self.compressed.open("p12/root.json") as root_properties_json:
-      self.root_properties = json.loads(root_properties_json.read())
-    self.lod_resolutions = {}
-    for lod_info in self.root_properties["tileInfo"]["lods"]:
-      self.lod_resolutions[lod_info["level"]] = lod_info["resolution"]
-    self.crs = pyproj.CRS(self.root_properties["tileInfo"]["spatialReference"]["latestWkid"])
-    for axis in self.crs.axis_info:
-      if axis.abbrev.upper() == "X":
-        self.x_axis = axis
-      elif axis.abbrev.upper() == "Y":
-        self.y_axis = axis
-      else:
-        raise Exception(f"Unknown axis ${axis}")
-
+    try:
+      with self.compressed.open("p12/tilemap/root.json") as tilemap_root_json:
+        self.root_tile = TileIndexRoot.from_list(json.loads(tilemap_root_json.read())["index"])
+      with self.compressed.open("p12/root.json") as root_properties_json:
+        self.root_properties = json.loads(root_properties_json.read())
+      self.lod_resolutions = {}
+      for lod_info in self.root_properties["tileInfo"]["lods"]:
+        self.lod_resolutions[lod_info["level"]] = lod_info["resolution"]
+      self.crs = pyproj.CRS(self.root_properties["tileInfo"]["spatialReference"]["latestWkid"])
+      for axis in self.crs.axis_info:
+        if axis.direction.upper() in {"EAST", "WEST"}:
+          self.x_axis = axis
+        elif axis.direction.upper() in {"NORTH", "SOUTH"}:
+          self.y_axis = axis
+        else:
+          raise VtpkException(f"Unrecognized axis direction ${axis.direction}")
+    except KeyError as e:
+      raise VtpkException("Didn't find an expected file in zip archive. Maybe this is not an Esri Vector Tile Package file?") from e
+  
   @cached_property
   def x_size(self) -> float:
     return self.root_properties["fullExtent"]["xmax"] - self.root_properties["fullExtent"]["xmin"]
@@ -214,12 +219,12 @@ class Vtpk:
 
   @cached_property
   def _y_sign(self) -> int:
-    if self.y_axis.direction == "south":
+    if self.y_axis.direction.upper() == "SOUTH":
       return 1
-    elif self.y_axis.direction == "north":
+    elif self.y_axis.direction.upper() == "NORTH":
       return -1
     else:
-      assert False
+      raise VtpkException(f"Unrecognized axis direction ${self.y_axis.direction}")
 
   def _tile_coord_xform_function(
     self, tile: TileIndexTile, tile_extent: int
@@ -250,17 +255,22 @@ class Vtpk:
     maxx, maxy = xform(1, 1)
     return (minx, miny, maxx, maxy)
 
-  def _tiles_in(self, tile: TileIndexTile, levels: Iterable[int], box: shapely.Polygon) -> Iterable[TileIndexTile]:
+  def _get_tiles(self, tile: TileIndexTile, lods: Iterable[int], bound_box: shapely.Polygon|None) -> Iterable[TileIndexTile]:
     tile_bounds = self.tile_bounds(tile)
-    intersection = shapely.box(*tile_bounds).intersection(box)
-    if intersection is not None and not intersection.is_empty:
-      result = [tile] if tile.level in levels else []
-      return result + [tile for child in tile.children.values() for tile in self._tiles_in(child, levels, box)]
+    if bound_box is not None:
+      intersection = shapely.box(*tile_bounds).intersection(bound_box)
+      proceed = intersection is not None and not intersection.is_empty
+    else:
+      proceed = True
+    if proceed:
+      result = set([tile]) if tile.level in lods else set([])
+      result |= set([tile for child in tile.children.values() for tile in self._get_tiles(child, lods, bound_box)])
+      return result
     else:
       return []
 
-  def tiles_in(self, levels: Iterable[int], box: shapely.Polygon):
-    return self._tiles_in(self.root_tile, levels, box)
+  def get_tiles(self, lods: Iterable[int], bound_box: shapely.Polygon|None):
+    return self._get_tiles(self.root_tile, lods, bound_box)
 
   def _tile_raw_features(self, tile: TileIndexTile):
     tile_file_c = int(tile.x / 128) * 128

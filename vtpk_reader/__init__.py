@@ -1,1 +1,1 @@
-from vtpk_reader import Vptk
+from vtpk_reader.vtpk_reader import Vtpk, VtpkException

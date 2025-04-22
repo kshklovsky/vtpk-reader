@@ -1,5 +1,5 @@
 import unittest
-from vtpk_reader import Vtpk
+from vtpk_reader import Vtpk, VtpkException
 import shapely
 
 class TestFileNotFound(unittest.TestCase):
@@ -7,6 +7,13 @@ class TestFileNotFound(unittest.TestCase):
   def test_not_found(self):
     with self.assertRaises(FileNotFoundError):
       Vtpk("./tests/test_data/file_not_found.vtpk")
+
+
+class TestWrongFileFormat(unittest.TestCase):
+
+  def test_wrong_format(self):
+    with self.assertRaises(VtpkException):
+      Vtpk("./tests/test_data/testvtpk.vtpk")
 
 
 class TestReadingDodgeCityDataset(unittest.TestCase):
