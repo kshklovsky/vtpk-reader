@@ -1,4 +1,4 @@
-# vtpk_reader
+# vtpk-reader
 A library to read ESRI Vector Tile Package (.vtpk) files
 
 ### Installation
