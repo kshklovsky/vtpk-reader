@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "vtpk-reader"
+version = "1.0.0"
+description = "Reading ESRI Vector Tile Package (vtpk) files."
+license = "MIT"
+authors = [
+    "Kirill Shklovsky <kirill.shklovsky@gmail.com>",
+]
+repository = "https://github.com/kshklovsky/vtpk-reader"
+readme = "README.md"
+exclude = [
+    "**/tests/**",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+include = [
+    "README.md",
+]
+packages = [
+    { include = "tvpk_reader" }
+]
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+protobuf = "^5.26.1"
+shapely = "^2.0.0"
+pyclipper = "^1.3.0"
+pyproj = { version = "^3.4.1", optional = true }
+
+[tool.poetry.extras]
+proj = ["pyproj"]
+
+[tool.poetry.group.test.dependencies]
+tox = "^4.0.16"
+coverage = { version = "^7.0.0", extras = ["toml"] }
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+show-fixes = true
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "C90", "W", "B", "UP", "I", "RUF100", "TID", "SIM", "PIE", "N", "C4", "G", "PTH"]
+unfixable = ["B"]
+extend-ignore = ["B024", "G004", "UP038"]
+flake8-tidy-imports.ban-relative-imports = "all"
+mccabe.max-complexity = 15
+pep8-naming.extend-ignore-names = ["assertRoundTrip"]
+
+# Coverage
+[tool.coverage.run]
+omit = ["mapbox_vector_tile/Mapbox/vector_tile_pb2.py"]

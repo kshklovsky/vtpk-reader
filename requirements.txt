@@ -1,1 +1,3 @@
 mapbox-vector-tile
+shapely
+pyproj
