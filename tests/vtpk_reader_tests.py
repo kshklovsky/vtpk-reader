@@ -1,6 +1,8 @@
 import unittest
-from vtpk_reader import Vtpk, VtpkException
+
 import shapely
+
+from vtpk_reader import Vtpk, VtpkError
 
 
 class TestFileNotFound(unittest.TestCase):
@@ -11,7 +13,7 @@ class TestFileNotFound(unittest.TestCase):
 
 class TestWrongFileFormat(unittest.TestCase):
     def test_wrong_format(self):
-        with self.assertRaises(VtpkException):
+        with self.assertRaises(VtpkError):
             Vtpk("./tests/test_data/testvtpk.vtpk")
 
 
@@ -39,13 +41,11 @@ class TestReadingDodgeCityDataset(unittest.TestCase):
         tiles = self.vtpk.get_tiles(lods=[11], bound_box=None)
         tile = list(tiles)[0]
         features = self.vtpk.tile_features(tile)
-        assert set(features.keys()) == set(
-            [
-                "Dodge_city_planet_osm_point_points",
-                "Dodge_city_planet_osm_line_lines",
-                "Dodge_city_planet_osm_polygon_polygons",
-            ]
-        )
+        assert set(features.keys()) == {
+            "Dodge_city_planet_osm_point_points",
+            "Dodge_city_planet_osm_line_lines",
+            "Dodge_city_planet_osm_polygon_polygons",
+        }
 
     def test_get_tiles_bounds(self):
         self.assertEqual(len(self.vtpk.get_tiles(lods=[11], bound_box=None)), 2)

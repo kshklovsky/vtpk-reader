@@ -13,7 +13,7 @@ import pyproj
 import shapely
 
 
-class VtpkException(Exception):
+class VtpkError(Exception):
     pass
 
 
@@ -60,17 +60,17 @@ class TileIndexTile:
 
     @staticmethod
     def from_data(data, parent: "TileIndexTile", level: int, x: int, y: int) -> "TileIndexTile":
-        if type(data) == int:
-            if data == 0:
+        match data:
+            case 0:
                 return None
-            elif data == 1:
+            case 1:
                 return TileIndexTile(
                     parent=parent, level=level, x=x, y=y, child_nw=None, child_ne=None, child_sw=None, child_se=None
                 )
-            else:
-                raise VtpkException("Unknown tilemap tile value {data}")
-        elif type(data) == list:
-            return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
+            case list():
+                return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
+            case _:
+                raise VtpkError("Unknown tilemap tile value {data}")
 
     @staticmethod
     def _make_parent_tile(
@@ -170,9 +170,9 @@ class TileBundleFile:
 
         tile_index = struct.unpack("q" * 128 * 128, self.bundle_stream.read(8 * 128 * 128))
         for idx, tile_idx_record in enumerate(list(tile_index)):
-            M = 2**40
-            tile_offset = tile_idx_record % M
-            tile_size = int(tile_idx_record / M)
+            m = 2**40
+            tile_offset = tile_idx_record % m
+            tile_size = int(tile_idx_record / m)
             if tile_size > 0:
                 tile_row = int(idx / 128)
                 tile_column = int(idx % 128)
@@ -207,9 +207,9 @@ class Vtpk:
                 elif axis.direction.upper() in {"NORTH", "SOUTH"}:
                     self.y_axis = axis
                 else:
-                    raise VtpkException(f"Unrecognized axis direction ${axis.direction}")
+                    raise VtpkError(f"Unrecognized axis direction ${axis.direction}")
         except KeyError as e:
-            raise VtpkException(
+            raise VtpkError(
                 "Didn't find an expected file in zip archive. Maybe this is not an Esri Vector Tile Package file?"
             ) from e
 
@@ -228,7 +228,7 @@ class Vtpk:
         elif self.y_axis.direction.upper() == "NORTH":
             return -1
         else:
-            raise VtpkException(f"Unrecognized axis direction ${self.y_axis.direction}")
+            raise VtpkError(f"Unrecognized axis direction ${self.y_axis.direction}")
 
     def _tile_coord_xform_function(
         self, tile: TileIndexTile, tile_extent: int
@@ -271,10 +271,8 @@ class Vtpk:
         else:
             proceed = True
         if proceed:
-            result = set([tile]) if tile.level in lods else set([])
-            result |= set(
-                [tile for child in tile.children.values() for tile in self._get_tiles(child, lods, bound_box)]
-            )
+            result = {tile} if tile.level in lods else set()
+            result |= {tile for child in tile.children.values() for tile in self._get_tiles(child, lods, bound_box)}
             return result
         else:
             return []
