@@ -38,6 +38,9 @@ mapbox-vector-tile = "^2.1.0"
 tox = "^4.0.16"
 coverage = { version = "^7.0.0", extras = ["toml"] }
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+
 [tool.ruff]
 line-length = 120
 target-version = "py38"
