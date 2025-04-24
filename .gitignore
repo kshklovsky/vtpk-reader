@@ -193,3 +193,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Coverage output
+.coverage
