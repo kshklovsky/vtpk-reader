@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vtpk-reader"
-version = "1.0.0"
+version = "0.1.0"
 description = "Reading ESRI Vector Tile Package (vtpk) files."
 license = "MIT"
 authors = [
