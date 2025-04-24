@@ -54,3 +54,7 @@ pep8-naming.extend-ignore-names = ["assertRoundTrip"]
 
 # Coverage
 [tool.coverage.run]
+
+[[tool.mypy.overrides]]
+module = ["mapbox_vector_tile.*"]
+follow_untyped_imports = true

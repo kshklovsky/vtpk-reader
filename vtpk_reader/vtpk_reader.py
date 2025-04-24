@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import gzip
 import json
@@ -6,7 +8,7 @@ import zipfile
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import Callable, Iterable, Tuple
+from typing import Callable, Iterable
 
 import mapbox_vector_tile
 import pyproj
@@ -27,14 +29,14 @@ class Qttl(Enum):
 class TileIndexTile:
     def __init__(
         self,
-        parent: "TileIndexTile",
+        parent: TileIndexTile | None,
         level: int,
         x: int,
         y: int,
-        child_nw: "TileIndexTile",
-        child_ne: "TileIndexTile",
-        child_sw: "TileIndexTile",
-        child_se: "TileIndexTile",
+        child_nw: TileIndexTile | None,
+        child_ne: TileIndexTile | None,
+        child_sw: TileIndexTile | None,
+        child_se: TileIndexTile | None,
     ):
         self.parent = parent
         self.level = level
@@ -43,7 +45,7 @@ class TileIndexTile:
         assert self.x is not None
         self.y = y
         assert self.y is not None
-        self.index = None
+        self.index: int | None = None
         self.children = {
             qttl: child
             for qttl, child in {
@@ -59,13 +61,20 @@ class TileIndexTile:
         return f"{self.__class__.__name__}(L{self.level:02}:{self.x},{self.y})"
 
     @staticmethod
-    def from_data(data, parent: "TileIndexTile", level: int, x: int, y: int) -> "TileIndexTile":
+    def from_data(data, parent: TileIndexTile | None, level: int, x: int, y: int) -> TileIndexTile | None:
         match data:
             case 0:
                 return None
             case 1:
                 return TileIndexTile(
-                    parent=parent, level=level, x=x, y=y, child_nw=None, child_ne=None, child_sw=None, child_se=None
+                    parent=parent,
+                    level=level,
+                    x=x,
+                    y=y,
+                    child_nw=None,
+                    child_ne=None,
+                    child_sw=None,
+                    child_se=None,
                 )
             case list():
                 return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
@@ -74,7 +83,7 @@ class TileIndexTile:
 
     @staticmethod
     def _make_parent_tile(
-        parent_factory: callable,
+        parent_factory: Callable,
         level: int,
         parent_x: int,
         parent_y: int,
@@ -84,7 +93,11 @@ class TileIndexTile:
         assert level is not None
         children = [
             TileIndexTile.from_data(
-                data=datum, parent=None, level=level + 1, x=parent_x * 2 + (idx % 2), y=parent_y * 2 + (int(idx / 2))
+                data=datum,
+                parent=None,
+                level=level + 1,
+                x=parent_x * 2 + (idx % 2),
+                y=parent_y * 2 + (int(idx / 2)),
             )
             for idx, datum in enumerate(children_data)
         ]
@@ -96,7 +109,7 @@ class TileIndexTile:
         return parent
 
     @classmethod
-    def from_list(cls, data: list, level: int, x: int, y: int, grand_parent: "TileIndexTile" = None):
+    def from_list(cls, data: list, level: int, x: int, y: int, grand_parent: TileIndexTile | None = None):
         return cls._make_parent_tile(
             parent_factory=lambda children: cls(grand_parent, level, x, y, *children),
             level=level,
@@ -121,7 +134,7 @@ class TileIndexRoot(TileIndexTile):
         self.level = 0
 
     @classmethod
-    def from_list(cls, data: list):
+    def from_list(cls, data: list, *_):
         return cls._make_parent_tile(
             parent_factory=lambda children: cls(*children), level=0, parent_x=0, parent_y=0, children_data=data
         )
@@ -255,7 +268,7 @@ class Vtpk:
 
         return xform_coord
 
-    def tile_bounds(self, tile: TileIndexTile) -> Tuple[float, float, float, float]:
+    def tile_bounds(self, tile: TileIndexTile) -> tuple[float, float, float, float]:
         xform = self._tile_coord_xform_function(tile, 1)
         minx, miny = xform(0, 0)
         maxx, maxy = xform(1, 1)
