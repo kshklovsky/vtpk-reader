@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 import shapely
 
@@ -20,7 +21,9 @@ class TestWrongFileFormat(unittest.TestCase):
 class TestReadingDodgeCityDataset(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.vtpk = Vtpk("./tests/test_data/dodge_city.vtpk")
+        test_dir = Path(__file__).resolve().parent
+        test_data_dir = test_dir / "test_data"
+        cls.vtpk = Vtpk(test_data_dir / "dodge_city.vtpk")
 
     def test_get_tiles_no_box(self):
         self.assertEqual(len(self.vtpk.get_tiles(lods=[0], bound_box=None)), 1)
