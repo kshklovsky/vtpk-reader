@@ -1,4 +1,8 @@
 # vtpk-reader
+
+[![CI](https://github.com/kshklovsky/vtpk-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/kshklovsky/vtpk-reader/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/kshklovsky/vtpk-reader/badge.svg?branch=main)](https://coveralls.io/github/kshklovsky/vtpk-reader?branch=main)
+
 A library to read ESRI Vector Tile Package (.vtpk) files
 
 ### Installation
