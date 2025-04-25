@@ -6,24 +6,27 @@ import shapely
 from vtpk_reader import Vtpk, VtpkError
 
 
-class TestFileNotFound(unittest.TestCase):
+class VtpkTestCase(unittest.TestCase):
+    test_dir = Path(__file__).resolve().parent
+    test_data_dir = test_dir / "test_data"
+
+
+class TestFileNotFound(VtpkTestCase):
     def test_not_found(self):
         with self.assertRaises(FileNotFoundError):
-            Vtpk("./tests/test_data/file_not_found.vtpk")
+            Vtpk(self.test_data_dir / "file_not_found.vtpk")
 
 
-class TestWrongFileFormat(unittest.TestCase):
+class TestWrongFileFormat(VtpkTestCase):
     def test_wrong_format(self):
         with self.assertRaises(VtpkError):
-            Vtpk("./tests/test_data/testvtpk.vtpk")
+            Vtpk(self.test_data_dir / "testvtpk.vtpk")
 
 
-class TestReadingDodgeCityDataset(unittest.TestCase):
+class TestReadingDodgeCityDataset(VtpkTestCase):
     @classmethod
     def setUpClass(cls):
-        test_dir = Path(__file__).resolve().parent
-        test_data_dir = test_dir / "test_data"
-        cls.vtpk = Vtpk(test_data_dir / "dodge_city.vtpk")
+        cls.vtpk = Vtpk(cls.test_data_dir / "dodge_city.vtpk")
 
     def test_get_tiles_no_box(self):
         self.assertEqual(len(self.vtpk.get_tiles(lods=[0], bound_box=None)), 1)
