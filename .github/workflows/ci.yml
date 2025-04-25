@@ -57,3 +57,4 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           parallel-finished: true
+          carryforward: "run-3.9,run-3.10,run-3.11,run-3.12"
