@@ -62,24 +62,23 @@ class TileIndexTile:
 
     @staticmethod
     def from_data(data, parent: TileIndexTile | None, level: int, x: int, y: int) -> TileIndexTile | None:
-        match data:
-            case 0:
-                return None
-            case 1:
-                return TileIndexTile(
-                    parent=parent,
-                    level=level,
-                    x=x,
-                    y=y,
-                    child_nw=None,
-                    child_ne=None,
-                    child_sw=None,
-                    child_se=None,
-                )
-            case list():
-                return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
-            case _:
-                raise VtpkError("Unknown tilemap tile value {data}")
+        if data == 0:
+            return None
+        elif data == 1:
+            return TileIndexTile(
+                parent=parent,
+                level=level,
+                x=x,
+                y=y,
+                child_nw=None,
+                child_ne=None,
+                child_sw=None,
+                child_se=None,
+            )
+        elif isinstance(data, list):
+            return TileIndexTile.from_list(data=data, level=level, x=x, y=y, grand_parent=parent)
+        else:
+            raise VtpkError("Unknown tilemap tile value {data}")
 
     @staticmethod
     def _make_parent_tile(
