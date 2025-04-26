@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 import contextily as cx
 
 # Load the vtpk
-vtpk = Vtpk("/Users/kirill/work/code/vtpk-reader/tests/test_data/dodge_city.vtpk")
+vtpk = Vtpk("dodge_city.vtpk")
 # Create a matplotlib plot
 fig, ax = plt.subplots(figsize=(10, 10))
 # Get all the tiles at the maximum Level Of Detail (LOD)
