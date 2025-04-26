@@ -27,7 +27,9 @@ features = vtpk.tile_features(one_tile)
 print(f"{features.keys()})
 ```
 
-## More detailed example using `dodge_city.vtbk`
+## More detailed example using `dodge_city.vtpk`
+
+This file is can be found at by [searching](https://www.arcgis.com/home/search.html?searchTerm=dodge+vtpk#content) for "vtpk" and "dodge" on www.arcgis.com. Based on the name and the description, it probably does not contain content not available elsewhere, but being small it is a useful test file.
 
 ```python
 from vtpk_reader import Vtpk
