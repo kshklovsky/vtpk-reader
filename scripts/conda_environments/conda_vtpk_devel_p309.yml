@@ -1,0 +1,19 @@
+name: vtpk_devel_p309
+dependencies: 
+    - python=3.09
+    - ipython
+    - pyproj
+    - geopandas
+    - shapely
+    - mapbox-vector-tile
+    - ruff
+    - build
+    - twine
+    # - types-shapely
+    - coverage
+    - pytest
+    - mypy
+    - grayskull
+    - pip
+    - pip:
+      - types-shapely

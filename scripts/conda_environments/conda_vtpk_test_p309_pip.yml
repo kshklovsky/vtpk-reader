@@ -1,0 +1,12 @@
+name: vtpk_test_p309_pip
+dependencies: 
+    - python=3.9 
+    - ipython
+    - pyproj
+    - geopandas
+    - shapely
+    - contextily
+    - mapbox-vector-tile
+    - pip # Install pip in your environment
+    # - pip: # Include pip dependencies last
+    #     - Flask-Testing

@@ -1,0 +1,4 @@
+name: vtpk_test_p309_pip_bare
+dependencies: 
+    - python=3.9 
+    - pip # Install pip in your environment

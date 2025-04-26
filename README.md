@@ -6,9 +6,13 @@
 A library to read ESRI Vector Tile Package (.vtpk) files
 
 ## Installation
+
+This library can be installed via pip (note the difference between a dash and an underscore for the name for installation versus imports):
 ```
-pip install vtpk_reader
+pip install vtpk-reader
 ```
+
+Anaconda installation is currently a work in progress...
 
 ## Getting started
 Read vtpk file and extract some features
@@ -74,5 +78,5 @@ ax.set_axis_off()
 ```
 
 You should get something like this:
-![logo](sample.png)
+![plotted_geo_features](sample.png)
 
