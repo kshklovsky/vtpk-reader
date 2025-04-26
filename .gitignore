@@ -196,3 +196,6 @@ $RECYCLE.BIN/
 
 # Coverage output
 .coverage
+
+# Distribution directory
+dist
