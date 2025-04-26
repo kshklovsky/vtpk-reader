@@ -28,6 +28,15 @@ class TestReadingDodgeCityDataset(VtpkTestCase):
     def setUpClass(cls):
         cls.vtpk = Vtpk(cls.test_data_dir / "dodge_city.vtpk")
 
+    def test_crs(self):
+        self.assertEqual(self.vtpk.crs.to_string(), "EPSG:3857")
+
+    def test_min_lod(self):
+        self.assertEqual(self.vtpk.min_lod, 0)
+
+    def test_max_lod(self):
+        self.assertEqual(self.vtpk.max_lod, 11)
+
     def test_get_tiles_no_box(self):
         self.assertEqual(len(self.vtpk.get_tiles(lods=[0], bound_box=None)), 1)
         self.assertEqual(len(self.vtpk.get_tiles(lods=[1], bound_box=None)), 1)
@@ -41,7 +50,8 @@ class TestReadingDodgeCityDataset(VtpkTestCase):
         self.assertEqual(len(self.vtpk.get_tiles(lods=[9], bound_box=None)), 1)
         self.assertEqual(len(self.vtpk.get_tiles(lods=[10], bound_box=None)), 1)
         self.assertEqual(len(self.vtpk.get_tiles(lods=[11], bound_box=None)), 2)
-        self.assertEqual(len(self.vtpk.get_tiles(lods=[12], bound_box=None)), 0)
+        with self.assertRaises(VtpkError):
+            self.vtpk.get_tiles(lods=[12], bound_box=None)
 
     def test_feature_keys(self):
         tiles = self.vtpk.get_tiles(lods=[11], bound_box=None)

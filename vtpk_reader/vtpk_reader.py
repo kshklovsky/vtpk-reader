@@ -212,8 +212,8 @@ class Vtpk:
             self.lod_resolutions = {}
             for lod_info in self.root_properties["tileInfo"]["lods"]:
                 self.lod_resolutions[lod_info["level"]] = lod_info["resolution"]
-            self.crs = pyproj.CRS(self.root_properties["tileInfo"]["spatialReference"]["latestWkid"])
-            for axis in self.crs.axis_info:
+            self._crs = pyproj.CRS(self.root_properties["tileInfo"]["spatialReference"]["latestWkid"])
+            for axis in self._crs.axis_info:
                 if axis.direction.upper() in {"EAST", "WEST"}:
                     self.x_axis = axis
                 elif axis.direction.upper() in {"NORTH", "SOUTH"}:
@@ -224,6 +224,18 @@ class Vtpk:
             raise VtpkError(
                 "Didn't find an expected file in zip archive. Maybe this is not an Esri Vector Tile Package file?"
             ) from e
+
+    @property
+    def crs(self) -> pyproj.CRS:
+        return self._crs
+
+    @property
+    def min_lod(self) -> int:
+        return self.root_properties["minLOD"]
+
+    @property
+    def max_lod(self) -> int:
+        return self.root_properties["maxLOD"]
 
     @cached_property
     def x_size(self) -> float:
@@ -289,7 +301,13 @@ class Vtpk:
         else:
             return []
 
+    def _check_lods(self, lods: Iterable[int]):
+        for lod in lods:
+            if lod < self.min_lod or lod > self.max_lod:
+                raise VtpkError(f"LOD {lod} is out of range (min is {self.min_lod}, max {self.max_lod})")
+
     def get_tiles(self, lods: Iterable[int], bound_box: shapely.Polygon | None):
+        self._check_lods(lods)
         return self._get_tiles(self.root_tile, lods, bound_box)
 
     def _tile_raw_features(self, tile: TileIndexTile):
